@@ -266,11 +266,10 @@ namespace StatsdClient
                                + "|" + metricType
                                + (postFix == null ? String.Empty : "|" + postFix);
 
-            if (tags.Any())
-            {
-                var preparedTags = tags.Aggregate(string.Empty, (r, kv) => r + kv.Key + "=" + kv.Value);
-                preparedMetric += "#" + preparedTags;
-            }
+            if (!tags.Any()) return preparedMetric;
+
+            var preparedTags = tags.Aggregate(string.Empty, (r, kv) => r + kv.Key + "=" + kv.Value);
+            preparedMetric += "#" + preparedTags;
 
             return preparedMetric;
         }

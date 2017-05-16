@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 namespace StatsdClient
 {
@@ -15,8 +13,9 @@ namespace StatsdClient
     private IStatsd _client;
     private string _name;
     private Stopwatch _stopwatch;
+    private KeyValuePair<string, string>[] _tags;
 
-    internal TimingToken(IStatsd client, string name)
+    internal TimingToken(IStatsd client, string name, params KeyValuePair<string, string>[] tags)
     {
       _stopwatch = Stopwatch.StartNew();
       _client = client;
@@ -29,7 +28,7 @@ namespace StatsdClient
     public void Dispose()
     {
       _stopwatch.Stop();
-      _client.LogTiming(_name, (int)_stopwatch.ElapsedMilliseconds);
+      _client.LogTiming(_name, (int)_stopwatch.ElapsedMilliseconds, _tags);
     }
   }
 }
