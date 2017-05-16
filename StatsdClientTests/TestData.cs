@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StatsdClientTests
 {
@@ -12,7 +8,7 @@ namespace StatsdClientTests
 
     private Random _random;
     private int _lastInteger;
-    
+
     public TestData()
     {
       _random = new Random();

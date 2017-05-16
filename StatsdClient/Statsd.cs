@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StatsdClient
@@ -105,9 +107,10 @@ namespace StatsdClient
         /// </summary>
         /// <param name="name">The metric name.</param>
         /// <param name="count">The counter value (defaults to 1).</param>
-        public async Task LogCountAsync(string name, long count = 1)
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogCountAsync(string name, long count = 1, params KeyValuePair<string, string>[] tags)
         {
-            await SendMetricAsync(MetricType.COUNT, name, _prefix, count);
+            await SendMetricAsync(MetricType.COUNT, name, _prefix, count, null, tags);
         }
 
         /// <summary>
@@ -115,9 +118,10 @@ namespace StatsdClient
         /// </summary>
         /// <param name="name">The metric name.</param>
         /// <param name="milliseconds">The duration, in milliseconds, for this metric.</param>
-        public async Task LogTimingAsync(string name, long milliseconds)
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogTimingAsync(string name, long milliseconds, params KeyValuePair<string, string>[] tags)
         {
-            await SendMetricAsync(MetricType.TIMING, name, _prefix, milliseconds);
+            await SendMetricAsync(MetricType.TIMING, name, _prefix, milliseconds, null, tags);
         }
 
         /// <summary>
@@ -125,9 +129,10 @@ namespace StatsdClient
         /// </summary>
         /// <param name="name">The metric name</param>
         /// <param name="value">The value for this gauge</param>
-        public async Task LogGaugeAsync(string name, long value)
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogGaugeAsync(string name, long value, params KeyValuePair<string, string>[] tags)
         {
-            await SendMetricAsync(MetricType.GAUGE, name, _prefix, value);
+            await SendMetricAsync(MetricType.GAUGE, name, _prefix, value, null, tags);
         }
 
         /// <summary>
@@ -135,8 +140,10 @@ namespace StatsdClient
         /// </summary>
         /// <param name="name">The metric name</param>
         /// <param name="value">The value for this gauge</param>
-        public async Task LogGaugeAsync(string name, double value) {
-            await SendMetricAsync(MetricType.GAUGE, name, _prefix, value);
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogGaugeAsync(string name, double value, params KeyValuePair<string, string>[] tags)
+        {
+            await SendMetricAsync(MetricType.GAUGE, name, _prefix, value, null, tags);
         }
 
         /// <summary>
@@ -144,8 +151,10 @@ namespace StatsdClient
         /// </summary>
         /// <param name="name">The metric name</param>
         /// <param name="value">The value for this gauge</param>
-        public async Task LogGaugeAsync(string name, decimal value) {
-            await SendMetricAsync(MetricType.GAUGE, name, _prefix, value);
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogGaugeAsync(string name, decimal value, params KeyValuePair<string, string>[] tags)
+        {
+            await SendMetricAsync(MetricType.GAUGE, name, _prefix, value, null, tags);
         }
 
         /// <summary>
@@ -153,13 +162,14 @@ namespace StatsdClient
         /// </summary>
         /// <param name="name">The metric name.</param>
         /// <param name="value">The value to log.</param>
+        /// <param name="tags">A list of optional tags to send with this metric</param>
         /// <remarks>
         ///     Logging to a set is about counting the number
         ///     of occurrences of each event.
         /// </remarks>
-        public async Task LogSetAsync(string name, long value)
+        public async Task LogSetAsync(string name, long value, params KeyValuePair<string, string>[] tags)
         {
-            await SendMetricAsync(MetricType.SET, name, _prefix, value);
+            await SendMetricAsync(MetricType.SET, name, _prefix, value, null, tags);
         }
 
         /// <summary>
@@ -168,9 +178,10 @@ namespace StatsdClient
         /// <param name="name">The metric name.</param>
         /// <param name="value">The metric value.</param>
         /// <param name="epoch">(optional) The epoch timestamp. Leave this blank to have the server assign an epoch for you.</param>
-        public async Task LogRawAsync(string name, long value, long? epoch = null)
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogRawAsync(string name, long value, long? epoch = null, params KeyValuePair<string, string>[] tags)
         {
-            await SendMetricAsync(MetricType.RAW, name, String.Empty, value, epoch.HasValue ? epoch.ToString() : null);
+            await SendMetricAsync(MetricType.RAW, name, String.Empty, value, epoch.HasValue ? epoch.ToString() : null, tags);
         }
 
         /// <summary>
@@ -179,9 +190,10 @@ namespace StatsdClient
         /// <param name="name">The metric namespace</param>
         /// <param name="value">The unique value to be counted in the time period</param>
         /// <param name="period">The time period, can be one of h,d,dow,w,m</param>
-        public async Task LogCalendargramAsync(string name, string value, string period)
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogCalendargramAsync(string name, string value, string period, params KeyValuePair<string, string>[] tags)
         {
-            await SendMetricAsync(MetricType.CALENDARGRAM, name, _prefix, value, period);
+            await SendMetricAsync(MetricType.CALENDARGRAM, name, _prefix, value, period, tags);
         }
 
         /// <summary>
@@ -190,23 +202,13 @@ namespace StatsdClient
         /// <param name="name">The metric namespace</param>
         /// <param name="value">The unique value to be counted in the time period</param>
         /// <param name="period">The time period, can be one of h,d,dow,w,m</param>
-        public async Task LogCalendargramAsync(string name, long value, string period)
+        /// <param name="tags">A list of optional tags to send with this metric</param>
+        public async Task LogCalendargramAsync(string name, long value, string period, params KeyValuePair<string, string>[] tags)
         {
-            await SendMetricAsync(MetricType.CALENDARGRAM, name, _prefix, value, period);
+            await SendMetricAsync(MetricType.CALENDARGRAM, name, _prefix, value, period, tags);
         }
 
-        private async Task SendMetricAsync(string metricType, string name, string prefix, long value, string postFix = null)
-        {
-            if (value < 0)
-            {
-                Trace.TraceWarning("Metric value for {0} was less than zero: {1}. Not sending.", name, value);
-                return;
-            }
-
-            await SendMetricAsync(metricType, name, prefix, value.ToString(), postFix);
-        }
-
-        private async Task SendMetricAsync(string metricType, string name, string prefix, double value, string postFix = null)
+        private async Task SendMetricAsync(string metricType, string name, string prefix, long value, string postFix = null, params KeyValuePair<string, string>[] tags)
         {
             if (value < 0)
             {
@@ -214,10 +216,10 @@ namespace StatsdClient
                 return;
             }
 
-            await SendMetricAsync(metricType, name, prefix, value.ToString(), postFix);
+            await SendMetricAsync(metricType, name, prefix, value.ToString(), postFix, tags);
         }
 
-        private async Task SendMetricAsync(string metricType, string name, string prefix, decimal value, string postFix = null)
+        private async Task SendMetricAsync(string metricType, string name, string prefix, double value, string postFix = null, params KeyValuePair<string, string>[] tags)
         {
             if (value < 0)
             {
@@ -225,16 +227,27 @@ namespace StatsdClient
                 return;
             }
 
-            await SendMetricAsync(metricType, name, prefix, value.ToString(), postFix);
+            await SendMetricAsync(metricType, name, prefix, value.ToString(), postFix, tags);
         }
 
-        private async Task SendMetricAsync(string metricType, string name, string prefix, string value, string postFix = null)
+        private async Task SendMetricAsync(string metricType, string name, string prefix, decimal value, string postFix = null, params KeyValuePair<string, string>[] tags)
+        {
+            if (value < 0)
+            {
+                Trace.TraceWarning("Metric value for {0} was less than zero: {1}. Not sending.", name, value);
+                return;
+            }
+
+            await SendMetricAsync(metricType, name, prefix, value.ToString(), postFix, tags);
+        }
+
+        private async Task SendMetricAsync(string metricType, string name, string prefix, string value, string postFix = null, params KeyValuePair<string, string>[] tags)
         {
             if (String.IsNullOrEmpty(name))
             {
                 throw new ArgumentNullException("name");
             }
-            await _outputChannel.SendAsync(PrepareMetric(metricType, name, prefix, value, postFix));
+            await _outputChannel.SendAsync(PrepareMetric(metricType, name, prefix, value, postFix, tags));
         }
 
         /// <summary>
@@ -246,12 +259,20 @@ namespace StatsdClient
         /// <param name="value"></param>
         /// <param name="postFix">A value to append to the end of the line.</param>
         /// <returns>The formatted metric</returns>
-        protected virtual string PrepareMetric(string metricType, string name, string prefix, string value, string postFix = null)
+        protected virtual string PrepareMetric(string metricType, string name, string prefix, string value, string postFix = null, params KeyValuePair<string, string>[] tags)
         {
-            return (String.IsNullOrEmpty(prefix) ? name : (prefix + "." + name))
-                   + ":" + value
-                   + "|" + metricType
-                   + (postFix == null ? String.Empty : "|" + postFix);
+            var preparedMetric = (String.IsNullOrEmpty(prefix) ? name : (prefix + "." + name))
+                               + ":" + value
+                               + "|" + metricType
+                               + (postFix == null ? String.Empty : "|" + postFix);
+
+            if (tags.Any())
+            {
+                var preparedTags = tags.Aggregate(string.Empty, (r, kv) => r + kv.Key + "=" + kv.Value);
+                preparedMetric += "#" + preparedTags;
+            }
+
+            return preparedMetric;
         }
     }
 }

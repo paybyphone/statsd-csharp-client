@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StatsdClient
 {
@@ -10,34 +11,34 @@ namespace StatsdClient
         /// <summary>
         /// Log a count for a metric
         /// </summary>
-        Task LogCountAsync(string name, long count = 1);
+        Task LogCountAsync(string name, long count = 1, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log a gauge value
         /// </summary>
-        Task LogGaugeAsync(string name, long value);
+        Task LogGaugeAsync(string name, long value, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log a gauge value
         /// </summary>
-        Task LogGaugeAsync(string name, double value);
+        Task LogGaugeAsync(string name, double value, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log a gauge value
         /// </summary>
-        Task LogGaugeAsync(string name, decimal value);
+        Task LogGaugeAsync(string name, decimal value, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log a latency / Timing
         /// </summary>
-        Task LogTimingAsync(string name, long milliseconds);
+        Task LogTimingAsync(string name, long milliseconds, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log the number of unique occurrances of something
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        Task LogSetAsync(string name, long value);
+        Task LogSetAsync(string name, long value, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log a calendargram metric
@@ -45,7 +46,7 @@ namespace StatsdClient
         /// <param name="name">The metric namespace</param>
         /// <param name="value">The unique value to be counted in the time period</param>
         /// <param name="period">The time period, can be one of h,d,dow,w,m</param>
-        Task LogCalendargramAsync(string name, string value, string period);
+        Task LogCalendargramAsync(string name, string value, string period, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log a calendargram metric
@@ -53,7 +54,7 @@ namespace StatsdClient
         /// <param name="name">The metric namespace</param>
         /// <param name="value">The unique value to be counted in the time period</param>
         /// <param name="period">The time period, can be one of h,d,dow,w,m</param>
-        Task LogCalendargramAsync(string name, long value, string period);
+        Task LogCalendargramAsync(string name, long value, string period, params KeyValuePair<string, string>[] tags);
 
         /// <summary>
         /// Log a raw metric that will not get aggregated on the server.
@@ -61,6 +62,6 @@ namespace StatsdClient
         /// <param name="name">The metric name.</param>
         /// <param name="value">The metric value.</param>
         /// <param name="epoch">(optional) The epoch timestamp. Leave this blank to have the server assign an epoch for you.</param>
-        Task LogRawAsync(string name, long value, long? epoch = null);
+        Task LogRawAsync(string name, long value, long? epoch = null, params KeyValuePair<string, string>[] tags);
     }
 }
